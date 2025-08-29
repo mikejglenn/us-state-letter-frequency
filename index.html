@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US State Letter Counter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2em;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .frequency-chart {
+            display: grid;
+            gap: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .letter-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 8px 0;
+            transition: all 0.3s ease;
+        }
+
+        .letter-bar:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            padding-left: 10px;
+        }
+
+        .letter-label {
+            font-weight: bold;
+            font-size: 1.2em;
+            min-width: 25px;
+            color: #667eea;
+        }
+
+        .bar-container {
+            flex: 1;
+            height: 25px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 12px;
+            transition: width 0.8s ease-out;
+            position: relative;
+        }
+
+        .bar-text {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .search-section {
+            grid-column: span 2;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: center;
+        }
+
+        .search-input {
+            padding: 15px 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.1em;
+            width: 200px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .alphabet-grid {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .letter-btn {
+            padding: 10px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+
+        .letter-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .letter-btn.missing {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+
+        .letter-btn.missing:hover {
+            background: #ff5252;
+        }
+
+        .results {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .state-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .state-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .state-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .highlighted {
+            background: #667eea;
+            color: white;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .insights {
+            background: rgba(118, 75, 162, 0.1);
+            padding: 25px;
+            border-radius: 20px;
+            margin-top: 30px;
+            border: 1px solid rgba(118, 75, 162, 0.2);
+        }
+
+        .insights h3 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .insight-item {
+            margin-bottom: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(118, 75, 162, 0.1);
+        }
+
+        .insight-item:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-section {
+                grid-column: span 1;
+            }
+            
+            .alphabet-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗺️ US State Letter Counter</h1>
+            <p class="subtitle">Explore the frequency of letters across all 50 US state names</p>
+        </header>
+
+        <div class="stats-summary">
+            <div class="stat-card">
+                <div class="stat-number" id="totalStates">50</div>
+                <div class="stat-label">States Analyzed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalLetters">0</div>
+                <div class="stat-label">Total Letters</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="uniqueLetters">0</div>
+                <div class="stat-label">Unique Letters</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="missingLetters">0</div>
+                <div class="stat-label">Missing Letters</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="section">
+                <h2>📊 Letter Frequency</h2>
+                <div class="frequency-chart" id="frequencyChart"></div>
+            </div>
+
+            <div class="section">
+                <h2>🔍 Letter Search</h2>
+                <div class="search-container">
+                    <input type="text" class="search-input" id="searchInput" 
+                           placeholder="Enter a letter..." maxlength="1">
+                </div>
+                
+                <div class="alphabet-grid" id="alphabetGrid"></div>
+                
+                <div class="results" id="searchResults" style="display: none;">
+                    <h3 id="resultsTitle">Results</h3>
+                    <p id="resultsCount"></p>
+                    <div class="state-list" id="stateList"></div>
+                </div>
+            </div>
+
+            <div class="section search-section">
+                <div class="insights" id="insights">
+                    <h3>💡 Interesting Insights</h3>
+                    <div id="insightsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // US States data
+        const states = [
+            "Alabama", "Alaska", "Arizona", "Arkansas", "California",
+            "Colorado", "Connecticut", "Delaware", "Florida", "Georgia",
+            "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa",
+            "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland",
+            "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri",
+            "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey",
+            "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio",
+            "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina",
+            "South Dakota", "Tennessee", "Texas", "Utah", "Vermont",
+            "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
+        ];
+
+        // Global variables
+        let letterCounts = {};
+        let totalLetters = 0;
+
+        // Initialize the app
+        function init() {
+            countLetters();
+            updateStats();
+            createFrequencyChart();
+            createAlphabetGrid();
+            generateInsights();
+            setupEventListeners();
+        }
+
+        // Count letters in all state names
+        function countLetters() {
+            letterCounts = {};
+            totalLetters = 0;
+
+            states.forEach(state => {
+                for (let char of state.toLowerCase()) {
+                    if (char.match(/[a-z]/)) {
+                        letterCounts[char] = (letterCounts[char] || 0) + 1;
+                        totalLetters++;
+                    }
+                }
+            });
+        }
+
+        // Update summary statistics
+        function updateStats() {
+            document.getElementById('totalLetters').textContent = totalLetters;
+            document.getElementById('uniqueLetters').textContent = Object.keys(letterCounts).length;
+            
+            const missingCount = 26 - Object.keys(letterCounts).length;
+            document.getElementById('missingLetters').textContent = missingCount;
+        }
+
+        // Create frequency chart
+        function createFrequencyChart() {
+            const chart = document.getElementById('frequencyChart');
+            const sortedLetters = Object.entries(letterCounts)
+                .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+            const maxCount = Math.max(...Object.values(letterCounts));
+
+            chart.innerHTML = '';
+            sortedLetters.forEach(([letter, count]) => {
+                const percentage = (count / totalLetters * 100).toFixed(1);
+                const barWidth = (count / maxCount * 100);
+
+                const letterBar = document.createElement('div');
+                letterBar.className = 'letter-bar';
+                letterBar.innerHTML = `
+                    <div class="letter-label">${letter.toUpperCase()}</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: ${barWidth}%"></div>
+                    </div>
+                    <div class="bar-text">${count} (${percentage}%)</div>
+                `;
+                chart.appendChild(letterBar);
+            });
+        }
+
+        // Create alphabet grid
+        function createAlphabetGrid() {
+            const grid = document.getElementById('alphabetGrid');
+            const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+            
+            grid.innerHTML = '';
+            for (let letter of alphabet) {
+                const btn = document.createElement('button');
+                btn.className = 'letter-btn';
+                btn.textContent = letter.toUpperCase();
+                btn.onclick = () => searchLetter(letter);
+                
+                if (!letterCounts[letter]) {
+                    btn.classList.add('missing');
+                    btn.title = 'This letter does not appear in any state name';
+                }
+                
+                grid.appendChild(btn);
+            }
+        }
+
+        // Search for states containing a letter
+        function searchLetter(letter) {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = letter.toUpperCase();
+            
+            const matchingStates = states.filter(state => 
+                state.toLowerCase().includes(letter.toLowerCase())
+            );
+
+            const results = document.getElementById('searchResults');
+            const resultsTitle = document.getElementById('resultsTitle');
+            const resultsCount = document.getElementById('resultsCount');
+            const stateList = document.getElementById('stateList');
+
+            const count = letterCounts[letter.toLowerCase()] || 0;
+            
+            resultsTitle.textContent = `Results for letter "${letter.toUpperCase()}"`;
+            resultsCount.textContent = `Found ${count} occurrences in ${matchingStates.length} state(s)`;
+
+            stateList.innerHTML = '';
+            if (matchingStates.length > 0) {
+                matchingStates.forEach(state => {
+                    const stateItem = document.createElement('div');
+                    stateItem.className = 'state-item';
+                    
+                    // Highlight the searched letter
+                    const highlighted = state.replace(
+                        new RegExp(letter, 'gi'), 
+                        match => `<span class="highlighted">${match}</span>`
+                    );
+                    
+                    stateItem.innerHTML = highlighted;
+                    stateList.appendChild(stateItem);
+                });
+            } else {
+                stateList.innerHTML = '<div class="state-item">No states contain this letter</div>';
+            }
+
+            results.style.display = 'block';
+            results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Generate insights
+        function generateInsights() {
+            const insightsList = document.getElementById('insightsList');
+            const sortedLetters = Object.entries(letterCounts)
+                .sort((a, b) => b[1] - a[1]);
+
+            const mostCommon = sortedLetters[0];
+            const leastCommon = sortedLetters[sortedLetters.length - 1];
+            
+            // Find missing letters
+            const missingLetters = [];
+            for (let i = 0; i < 26; i++) {
+                const letter = String.fromCharCode(97 + i);
+                if (!letterCounts[letter]) {
+                    missingLetters.push(letter.toUpperCase());
+                }
+            }
+
+            const insights = [
+                `Most common letter: <strong>${mostCommon[0].toUpperCase()}</strong> appears ${mostCommon[1]} times (${(mostCommon[1]/totalLetters*100).toFixed(1)}%)`,
+                `Least common letter: <strong>${leastCommon[0].toUpperCase()}</strong> appears ${leastCommon[1]} time(s)`,
+                missingLetters.length > 0 
+                    ? `Missing letters: <strong>${missingLetters.join(', ')}</strong>`
+                    : 'All 26 letters appear in state names!',
+                `Vowels (A,E,I,O,U) make up ${calculateVowelPercentage()}% of all letters`,
+                `Average letters per state: ${(totalLetters / states.length).toFixed(1)}`
+            ];
+
+            insightsList.innerHTML = insights
+                .map(insight => `<div class="insight-item">${insight}</div>`)
+                .join('');
+        }
+
+        // Calculate vowel percentage
+        function calculateVowelPercentage() {
+            const vowels = ['a', 'e', 'i', 'o', 'u'];
+            const vowelCount = vowels.reduce((sum, vowel) => sum + (letterCounts[vowel] || 0), 0);
+            return ((vowelCount / totalLetters) * 100).toFixed(1);
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            const searchInput = document.getElementById('searchInput');
+            
+            searchInput.addEventListener('input', (e) => {
+                const letter = e.target.value.toLowerCase();
+                if (letter && letter.match(/[a-z]/)) {
+                    searchLetter(letter);
+                } else if (!letter) {
+                    document.getElementById('searchResults').style.display = 'none';
+                }
+            });
+
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const letter = e.target.value.toLowerCase();
+                    if (letter && letter.match(/[a-z]/)) {
+                        searchLetter(letter);
+                    }
+                }
+            });
+        }
+
+        // Initialize the app when page loads
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
